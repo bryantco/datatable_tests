@@ -2,7 +2,7 @@
 title: "Testing data.table"
 author: "Bryant Cong"
 date: today
-format: html
+format: gfm
 ---
 
 # Setup 
