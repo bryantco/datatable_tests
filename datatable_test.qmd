@@ -1,0 +1,198 @@
+---
+title: "Testing data.table"
+author: "Bryant Cong"
+date: today
+format: html
+---
+
+# Setup 
+
+First, following the `data.table` vignette, we load `data.table` and the `NYC-flights14` dataset.
+
+```{r}
+library(data.table) # 1.14.8 
+```
+
+```{r}
+input <- if (file.exists("flights14.csv")) {
+   "flights14.csv"
+} else {
+  "https://raw.githubusercontent.com/Rdatatable/data.table/master/vignettes/flights14.csv"
+}
+flights <- fread(input)
+```
+
+# Wrangling 
+
+Let's view the fields in the data.
+
+```{r}
+head(flights)
+```
+
+## Subset based on position:
+
+All flights on January 3, 2014, that landed at LAX:
+
+```{r}
+head(flights[dest == "LAX" & month == 1 & day == 3])
+```
+
+## Arranging 
+
+Sorting by flights that had the highest air time, and also by carrier:
+
+```{r}
+head(flights[order(-air_time, carrier)])
+```
+
+## Returning data subsets 
+
+Returning the air time column as a vector:
+
+```{r}
+head(flights[, air_time])
+```
+
+Returning the air time column as a `data.table`: 
+
+```{r}
+head(flights[, .(air_time)])
+```
+
+Returning columns as `data.table` and renaming:
+
+```{r}
+head(flights[, .(port_of_origin = origin, port_of_destination = dest)])
+```
+
+Computing on `j`: how many trips were over 4,000 miles?
+
+```{r}
+flights[, sum(distance > 4000)]
+```
+
+Subset on `i` and compute in `j`: count the number of flights from JFK that were delayed
+
+```{r}
+flights[origin == "JFK", .N]
+```
+
+## Column selection 
+
+Selecting columns using a vector:
+
+```{r}
+cols <- c("origin", "dest", "air_time")
+
+head(flights[, ..cols]) # note that the selection happens in j
+```
+
+Deselecting columns:
+
+```{r}
+head(flights[, -cols, with = FALSE])
+# I slightly prefer this to 
+# head(flights[, -..cols])
+```
+
+# Aggregating 
+
+## Grouping using by 
+
+Number of flights per month?
+
+```{r}
+flights[, .(n = .N), by = month]
+```
+
+Use `i`, `j`, and `k` at the same time:
+
+Number of flights for United Airlines that were delayed in 2014, by month
+
+```{r}
+flights[carrier == "UA", .(num_delays = sum(dep_delay > 0)), by = month]
+```
+
+Using `keyby` to sort: 
+
+Number of flights delayed by carrier in January 2014 
+
+```{r}
+flights[month == 1, .(num_delays = sum(dep_delay > 0)), keyby = carrier]
+```
+
+
+Chaining: filtering for proportion delayed over 20%
+
+
+```{r}
+flights[, .(p_delayed = sum(dep_delay > 0) / .N), by = carrier][p_delayed > 0.2]
+```
+
+Expressions: number of flights with air time over 300 minutes?
+
+```{r}
+flights[, .N, .(air_time > 300)]
+```
+
+
+## Practicing .SD 
+
+Compute the mean air time by carrier 
+
+
+```{r}
+flights[, lapply(.SD, mean), by = carrier, .SDcols = "air_time"]
+```
+
+
+# Reference Semantics 
+
+Adding columns by reference: concatenate year, month, and day
+
+```{r}
+# the empty [] after allows you to view the results
+flights[, `:=` (ymd = paste0(year, "_", month, "_", day))][]
+```
+
+Deleting columns:
+
+```{r}
+flights[, ymd := NULL]
+```
+
+Adding a grouped-by column (not sure `tidyverse` can do this)!
+
+Average delay by carrier:
+
+```{r}
+flights[, avg_delay := mean(dep_delay), by = .(carrier)][]
+```
+
+Make sure to be careful in passing a `data.table` to a function, since you might update it if you make any changes to it within a function.
+
+# Reshaping 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
