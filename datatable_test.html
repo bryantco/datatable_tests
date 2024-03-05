@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Bryant Cong">
-<meta name="dcterms.date" content="2024-02-24">
+<meta name="dcterms.date" content="2024-03-04">
 
 <title>Testing data.table</title>
 <style>
@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">February 24, 2024</p>
+      <p class="date">March 4, 2024</p>
     </div>
   </div>
   
@@ -356,7 +356,113 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 14:      OO 0.3400000</code></pre>
 </div>
 </div>
+<p>Expressions: number of flights with air time over 300 minutes?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>flights[, .N, .(air_time <span class="sc">&gt;</span> <span class="dv">300</span>)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   air_time      N
+1:     TRUE  38722
+2:    FALSE 214594</code></pre>
+</div>
+</div>
 </section>
+<section id="practicing-.sd" class="level2">
+<h2 class="anchored" data-anchor-id="practicing-.sd">Practicing .SD</h2>
+<p>Compute the mean air time by carrier</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>flights[, <span class="fu">lapply</span>(.SD, mean), by <span class="ot">=</span> carrier, .SDcols <span class="ot">=</span> <span class="st">"air_time"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    carrier  air_time
+ 1:      AA 194.37936
+ 2:      AS 325.17073
+ 3:      B6 150.83696
+ 4:      DL 175.59631
+ 5:      EV  90.18441
+ 6:      F9 226.02960
+ 7:      FL 101.05356
+ 8:      HA 625.00385
+ 9:      MQ  86.28725
+10:      VX 337.67375
+11:      WN 145.04436
+12:      UA 215.26611
+13:      US  86.93355
+14:      OO 112.22500</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="reference-semantics" class="level1">
+<h1>Reference Semantics</h1>
+<p>Adding columns by reference: concatenate year, month, and day</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the empty [] after allows you to view the results</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>flights[, <span class="st">`</span><span class="at">:=</span><span class="st">`</span> (<span class="at">ymd =</span> <span class="fu">paste0</span>(year, <span class="st">"_"</span>, month, <span class="st">"_"</span>, day))][]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        year month day dep_delay arr_delay carrier origin dest air_time
+     1: 2014     1   1        14        13      AA    JFK  LAX      359
+     2: 2014     1   1        -3        13      AA    JFK  LAX      363
+     3: 2014     1   1         2         9      AA    JFK  LAX      351
+     4: 2014     1   1        -8       -26      AA    LGA  PBI      157
+     5: 2014     1   1         2         1      AA    JFK  LAX      350
+    ---                                                                
+253312: 2014    10  31         1       -30      UA    LGA  IAH      201
+253313: 2014    10  31        -5       -14      UA    EWR  IAH      189
+253314: 2014    10  31        -8        16      MQ    LGA  RDU       83
+253315: 2014    10  31        -4        15      MQ    LGA  DTW       75
+253316: 2014    10  31        -5         1      MQ    LGA  SDF      110
+        distance hour        ymd
+     1:     2475    9   2014_1_1
+     2:     2475   11   2014_1_1
+     3:     2475   19   2014_1_1
+     4:     1035    7   2014_1_1
+     5:     2475   13   2014_1_1
+    ---                         
+253312:     1416   14 2014_10_31
+253313:     1400    8 2014_10_31
+253314:      431   11 2014_10_31
+253315:      502   11 2014_10_31
+253316:      659    8 2014_10_31</code></pre>
+</div>
+</div>
+<p>Deleting columns:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>flights[, ymd <span class="sc">:</span><span class="er">=</span> <span class="cn">NULL</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Adding a grouped-by column (not sure <code>tidyverse</code> can do this)!</p>
+<p>Average delay by carrier:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>flights[, avg_delay <span class="sc">:</span><span class="er">=</span> <span class="fu">mean</span>(dep_delay), by <span class="ot">=</span> .(carrier)][]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        year month day dep_delay arr_delay carrier origin dest air_time
+     1: 2014     1   1        14        13      AA    JFK  LAX      359
+     2: 2014     1   1        -3        13      AA    JFK  LAX      363
+     3: 2014     1   1         2         9      AA    JFK  LAX      351
+     4: 2014     1   1        -8       -26      AA    LGA  PBI      157
+     5: 2014     1   1         2         1      AA    JFK  LAX      350
+    ---                                                                
+253312: 2014    10  31         1       -30      UA    LGA  IAH      201
+253313: 2014    10  31        -5       -14      UA    EWR  IAH      189
+253314: 2014    10  31        -8        16      MQ    LGA  RDU       83
+253315: 2014    10  31        -4        15      MQ    LGA  DTW       75
+253316: 2014    10  31        -5         1      MQ    LGA  SDF      110
+        distance hour avg_delay
+     1:     2475    9  8.510532
+     2:     2475   11  8.510532
+     3:     2475   19  8.510532
+     4:     1035    7  8.510532
+     5:     2475   13  8.510532
+    ---                        
+253312:     1416   14 14.296086
+253313:     1400    8 14.296086
+253314:      431   11  8.059324
+253315:      502   11  8.059324
+253316:      659    8  8.059324</code></pre>
+</div>
+</div>
+<p>Make sure to be careful in passing a <code>data.table</code> to a function, since you might update it if you make any changes to it within a function.</p>
+</section>
+<section id="reshaping" class="level1">
+<h1>Reshaping</h1>
 </section>
 
 </main>
